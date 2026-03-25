@@ -1,0 +1,8 @@
+                     CONFIGURANDO O GITHUB
+git config --global user.name AnthonyRodrigues894
+git config --global user.email anthonyserrano894@gmail.com
+-----------------------------------------------------------
+                     ABRINDO O PROJETO
+cd postboard
+
+npx expo start --android
