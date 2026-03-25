@@ -43,6 +43,7 @@ export default function AppNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
+        tabBarShowLabel: false,
         headerShown: false,   // O Stack já mostra o header
         tabBarActiveTintColor: '#1a56db',
         tabBarInactiveTintColor: '#9ca3af',

@@ -1,7 +1,24 @@
+import React, { useLayoutEffect } from 'react';
 import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
  
 export default function FeedScreen({ navigation }) {
+      // useLayoutEffect roda antes da renderização visual,
+  // garantindo que o botão apareça sem piscar.
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerRight: () => (
+        <TouchableOpacity
+          onPress={() => navigation.navigate('FormularioTab')}
+          style={{ marginRight: 4 }}
+
+        >
+          <Text style={{ color: '#fff', fontSize: 28, fontWeight: '300' }}>+</Text>
+        </TouchableOpacity>
+      ),
+    });
+  }, [navigation]);
+
   return (
     <View style={styles.container}>
       <Text style={styles.titulo}>Feed de Posts</Text>
