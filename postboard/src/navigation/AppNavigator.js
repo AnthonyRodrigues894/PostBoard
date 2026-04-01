@@ -18,9 +18,9 @@ function FeedStack() {
   return (
     <Stack.Navigator
       screenOptions={{
-        headerStyle: { backgroundColor: '#1e3a5f' },
+        headerStyle: { backgroundColor: '#064e3b' },
         headerTintColor: '#ffffff',
-        headerTitleStyle: { fontWeight: 'bold' },
+        headerTitleStyle: { fontWeight: 'bold', color: '#d1fae5' },
       }}
     >
       <Stack.Screen
@@ -43,9 +43,8 @@ export default function AppNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        tabBarShowLabel: false,
         headerShown: false,   // O Stack já mostra o header
-        tabBarActiveTintColor: '#1a56db',
+        tabBarActiveTintColor: '#059669',
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
           backgroundColor: '#ffffff',
