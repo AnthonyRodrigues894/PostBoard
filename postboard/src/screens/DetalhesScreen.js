@@ -7,31 +7,84 @@ import {
 import { getUsuarioPorId, deletarPost } from '../services/api';
 import LoadingIndicator from '../components/LoadingIndicator';
 
+// ✅ CACHE
+import { salvar, ler, lerMesmoExpirado, CHAVES } from '../storage/cache';
+
 export default function DetalhesScreen({ navigation, route }) {
 
-  const { post } = route.params;
+  const { post: postParam } = route.params;
 
+  const [post, setPost] = useState(postParam); // ✅ novo estado
   const [usuario, setUsuario] = useState(null);
   const [loading, setLoading] = useState(true);
   const [deletando, setDeletando] = useState(false);
-
-  // ✅ NOVO (Exercício 4)
   const [erroAutor, setErroAutor] = useState(false);
 
-  // Header
   useLayoutEffect(() => {
     navigation.setOptions({ title: `Post #${post.id}` });
   }, [navigation, post.id]);
 
-  // Buscar autor
+  // ✅ CACHE DO POST (NOVO)
+  useEffect(() => {
+    async function carregarPost() {
+      const chavePost = CHAVES.POST(postParam.id);
+
+      try {
+        // 1️⃣ tenta cache válido
+        const cachePost = await ler(chavePost);
+
+        if (cachePost) {
+          setPost(cachePost);
+          return;
+        }
+
+        // 2️⃣ usa fallback da navegação
+        setPost(postParam);
+
+        // salva no cache
+        await salvar(chavePost, postParam);
+
+      } catch (e) {
+        // 3️⃣ tenta cache expirado
+        const cacheAntigo = await lerMesmoExpirado(chavePost);
+
+        if (cacheAntigo) {
+          setPost(cacheAntigo);
+        }
+      }
+    }
+
+    carregarPost();
+  }, [postParam]);
+
+  // ✅ CACHE DO AUTOR (já estava certo)
   useEffect(() => {
     async function carregarAutor() {
+      const chaveUsuario = CHAVES.USUARIO(post.userId);
+
       try {
+        const cacheUsuario = await ler(chaveUsuario);
+
+        if (cacheUsuario) {
+          setUsuario(cacheUsuario);
+          setLoading(false);
+          return;
+        }
+
         const dados = await getUsuarioPorId(post.userId);
         setUsuario(dados);
+        await salvar(chaveUsuario, dados);
+
       } catch (e) {
-        console.warn('Não foi possível carregar o autor:', e.message);
-        setErroAutor(true); // ✅ erro visual
+        const cacheAntigo = await lerMesmoExpirado(chaveUsuario);
+
+        if (cacheAntigo) {
+          setUsuario(cacheAntigo);
+        } else {
+          console.warn('Autor indisponível:', e.message);
+          setErroAutor(true);
+        }
+
       } finally {
         setLoading(false);
       }
@@ -40,7 +93,6 @@ export default function DetalhesScreen({ navigation, route }) {
     carregarAutor();
   }, [post.userId]);
 
-  // Confirmar exclusão
   function confirmarDelecao() {
     Alert.alert(
       'Excluir post',
@@ -69,7 +121,7 @@ export default function DetalhesScreen({ navigation, route }) {
   }
 
   if (loading) {
-    return <LoadingIndicator mensagem="Carregando autor..." />;
+    return <LoadingIndicator mensagem="Carregando..." />;
   }
 
   return (
@@ -81,7 +133,7 @@ export default function DetalhesScreen({ navigation, route }) {
         <Text style={styles.corpo}>{post.body}</Text>
       </View>
 
-      {/* ✅ ERRO VISUAL (Exercício 4) */}
+      {/* Erro */}
       {erroAutor && (
         <View style={styles.erroBox}>
           <Text style={styles.erroTexto}>
@@ -132,111 +184,3 @@ export default function DetalhesScreen({ navigation, route }) {
     </ScrollView>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#f3f4f6',
-    padding: 16
-  },
-
-  card: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 20,
-    marginBottom: 16,
-    elevation: 2,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-  },
-
-  titulo: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1e3a5f',
-    textTransform: 'capitalize',
-    marginBottom: 16,
-    lineHeight: 28,
-  },
-
-  corpo: {
-    fontSize: 15,
-    color: '#374151',
-    lineHeight: 24
-  },
-
-  // ✅ estilo do erro
-  erroBox: {
-    backgroundColor: '#fef3c7',
-    padding: 12,
-    borderRadius: 8,
-    marginBottom: 16
-  },
-
-  erroTexto: {
-    color: '#92400e',
-    fontSize: 13,
-    fontWeight: '500'
-  },
-
-  autorCard: {
-    backgroundColor: '#ffffff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    borderLeftWidth: 4,
-    borderLeftColor: '#1a56db',
-  },
-
-  autorLabel: {
-    fontSize: 11,
-    color: '#9ca3af',
-    fontWeight: '700',
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-    marginBottom: 6
-  },
-
-  autorNome: {
-    fontSize: 17,
-    fontWeight: '700',
-    color: '#1e3a5f',
-    marginBottom: 8
-  },
-
-  autorInfo: {
-    fontSize: 13,
-    color: '#6b7280',
-    marginBottom: 4
-  },
-
-  acoes: {
-    gap: 12
-  },
-
-  botaoEditar: {
-    backgroundColor: '#1a56db',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-  },
-
-  botaoExcluir: {
-    backgroundColor: '#dc2626',
-    borderRadius: 10,
-    padding: 16,
-    alignItems: 'center',
-  },
-
-  botaoDesabilitado: {
-    opacity: 0.6
-  },
-
-  textoBotao: {
-    color: '#ffffff',
-    fontSize: 15,
-    fontWeight: '700'
-  },
-});

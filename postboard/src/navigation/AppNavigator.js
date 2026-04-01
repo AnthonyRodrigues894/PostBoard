@@ -2,18 +2,17 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { Text } from 'react-native';
- 
-// Importa as telas
+
+// Telas
 import FeedScreen       from '../screens/FeedScreen';
 import DetalhesScreen   from '../screens/DetalhesScreen';
 import FormularioScreen from '../screens/FormularioScreen';
- 
-// Cria as instâncias dos navegadores
+import CacheScreen      from '../screens/CacheScreen'; // ✅ NOVO
+
 const Stack = createNativeStackNavigator();
 const Tab   = createBottomTabNavigator();
- 
-// ─── Stack Navigator da aba Feed ───────────────────────────
-// Agrupa FeedScreen e DetalhesScreen em um fluxo linear
+
+// ─── Stack do Feed ───────────────────────────────────────
 function FeedStack() {
   return (
     <Stack.Navigator
@@ -36,14 +35,13 @@ function FeedStack() {
     </Stack.Navigator>
   );
 }
- 
-// ─── Bottom Tab Navigator (raiz) ───────────────────────────
-// Define as abas principais do aplicativo
+
+// ─── Tabs principais ─────────────────────────────────────
 export default function AppNavigator() {
   return (
     <Tab.Navigator
       screenOptions={({ route }) => ({
-        headerShown: false,   // O Stack já mostra o header
+        headerShown: false,
         tabBarActiveTintColor: '#059669',
         tabBarInactiveTintColor: '#9ca3af',
         tabBarStyle: {
@@ -53,27 +51,46 @@ export default function AppNavigator() {
           paddingBottom: 4,
           height: 60,
         },
-        // Ícone de cada aba usando emoji (sem dependência extra)
+
+        // Ícones
         tabBarIcon: ({ focused }) => {
           const icones = {
             FeedTab:       focused ? '📋' : '📄',
             FormularioTab: focused ? '✏️' : '📝',
+            CacheTab:      focused ? '🗄️' : '📦', // ✅ NOVO
           };
+
           return <Text style={{ fontSize: 22 }}>{icones[route.name]}</Text>;
         },
       })}
     >
+      {/* Feed */}
       <Tab.Screen
         name="FeedTab"
         component={FeedStack}
         options={{ tabBarLabel: 'Posts' }}
       />
+
+      {/* Formulário */}
       <Tab.Screen
         name="FormularioTab"
         component={FormularioScreen}
         options={{
           tabBarLabel: 'Novo Post',
           title: 'Novo Post',
+          headerShown: true,
+          headerStyle: { backgroundColor: '#1e3a5f' },
+          headerTintColor: '#ffffff',
+        }}
+      />
+
+      {/* ✅ Cache */}
+      <Tab.Screen
+        name="CacheTab"
+        component={CacheScreen}
+        options={{
+          tabBarLabel: 'Cache',
+          title: 'Cache',
           headerShown: true,
           headerStyle: { backgroundColor: '#1e3a5f' },
           headerTintColor: '#ffffff',
